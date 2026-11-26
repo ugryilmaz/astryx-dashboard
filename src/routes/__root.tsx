@@ -1,15 +1,13 @@
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
-import { Theme } from "@astryxdesign/core/theme";
-import { neutralTheme } from "@astryxdesign/theme-neutral";
 
 const RootLayout = () => (
   <>
-    <Theme theme={neutralTheme}>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </Theme>
+    <Outlet />
+    <TanStackRouterDevtools />
   </>
 );
 
-export const Route = createRootRoute({ component: RootLayout });
+export const Route = createRootRouteWithContext<{ auth: boolean }>()({
+  component: RootLayout,
+});

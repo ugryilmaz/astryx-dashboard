@@ -1,10 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import LoginSimple from "../features/login-card/page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import LoginSimple from "../pages/Login";
 
 export const Route = createFileRoute("/login")({
-  component: RouteComponent,
+  beforeLoad: ({ context }) => {
+    if (context.auth) {
+      throw redirect({ to: "/dashboard" });
+    }
+  },
+  component: () => <LoginSimple />,
 });
-
-function RouteComponent() {
-  return <LoginSimple />;
-}

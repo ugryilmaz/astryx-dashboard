@@ -10,14 +10,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@astryxdesign/core": "^0.7.16",
-    "@astryxdesign/theme-neutral": "^0.7.16",
+    "@astryxdesign/cli": "^0.7.17",
+    "@astryxdesign/core": "^0.7.17",
+    "@astryxdesign/theme-neutral": "^0.7.17",
     "@heroicons/react": "^2.2.0",
     "@stylexjs/stylex": "^0.19.2",
+    "@tanstack/react-form-devtools": "^0.2.34",
+    "@tanstack/react-form-nextjs": "^1.33.5",
+    "@tanstack/react-query": "^5.108.4",
     "@tanstack/react-router": "^1.170.46",
     "@tanstack/react-router-devtools": "^1.167.3",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "recharts": "^3.11.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@astryxdesign/build": "^0.7.16",
@@ -25,6 +31,7 @@
     "@eslint/js": "^10.0.1",
     "@rolldown/plugin-babel": "^0.3.0",
     "@stylexjs/unplugin": "^0.19.2",
+    "@tailwindcss/vite": "^4",
     "@tanstack/router-plugin": "^1.169.0",
     "@types/babel__core": "^7.20.5",
     "@types/node": "^24.19.2",
@@ -36,6 +43,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.13.0",
+    "tailwindcss": "^4",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.1",
     "vite": "^8.3.8"

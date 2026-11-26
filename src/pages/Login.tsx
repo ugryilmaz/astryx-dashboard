@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import { CubeIcon } from "@heroicons/react/24/outline";
 import { VStack } from "@astryxdesign/core/Layout";
 import { Center } from "@astryxdesign/core/Center";
@@ -13,6 +13,9 @@ import { Card } from "@astryxdesign/core/Card";
 import { Link } from "@astryxdesign/core/Link";
 import { Divider } from "@astryxdesign/core/Divider";
 import { Icon } from "@astryxdesign/core/Icon";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
+import { useMutation } from "@tanstack/react-query";
+import { z } from "zod";
 
 // Brand sign-in marks — no heroicons or template-assets equivalent.
 const AppleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -58,7 +61,7 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 // Standalone auth page paints its own body background (no host shell).
 const pageStyle: CSSProperties = {
-  minHeight: "100%",
+  minHeight: "100dvh",
   backgroundColor: "var(--color-background-body)",
 };
 // Cap the column at 400px but let it shrink to fit narrow screens (Stack
@@ -68,24 +71,39 @@ const contentStyle: CSSProperties = {
   maxWidth: 400,
 };
 
-export default function LoginSimple() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginFailed, setLoginFailed] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+const schema = z.object({
+  email: z.email("Enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters"),
+});
 
-  const handleLogin = () => {
-    if (!email || !password) {
-      setLoginFailed(true);
-      return;
-    }
-    setIsLoading(true);
-    setLoginFailed(false);
-    setTimeout(() => {
-      setIsLoading(false);
-      setLoginFailed(true);
-    }, 2000);
-  };
+export default function LoginSimple() {
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: { email: string; password: string }) => {
+      console.log("Login values:", credentials);
+    },
+    onSuccess: () => {
+      loginMutation.reset();
+    },
+  });
+
+  const form = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: schema,
+    },
+    onSubmit: ({ value }) => {
+      loginMutation.mutate(value);
+    },
+  });
+
+  const { handleSubmit, state } = form;
 
   return (
     <Center axis="both" padding={6} style={pageStyle}>
@@ -109,61 +127,100 @@ export default function LoginSimple() {
               </Text>
             </VStack>
 
-            {/* Form fields */}
-            <VStack gap={2}>
-              <TextInput
-                label="Email"
-                isLabelHidden
-                type="email"
-                placeholder="name@company.com"
-                value={email}
-                onChange={setEmail}
-                size="lg"
-              />
-              <VStack gap={1}>
-                <TextInput
-                  label="Password"
-                  isLabelHidden
-                  placeholder="Enter your password"
-                  type="password"
-                  value={password}
-                  onChange={(v: string) => {
-                    setPassword(v);
-                    setLoginFailed(false);
-                  }}
-                  size="lg"
-                  status={
-                    loginFailed
-                      ? {
-                          type: "error",
-                          message: "Incorrect password. Try again.",
+            <form
+              noValidate
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSubmit();
+              }}
+            >
+              <VStack gap={4}>
+                {/* Form fields */}
+                <VStack gap={2}>
+                  <form.Field
+                    name="email"
+                    children={(field) => (
+                      <TextInput
+                        label="Email"
+                        isLabelHidden
+                        type="email"
+                        placeholder="name@company.com"
+                        value={state.values.email}
+                        isDisabled={loginMutation.isPending}
+                        onChange={(value: string) => {
+                          field.handleChange(value);
+                        }}
+                        onBlur={field.handleBlur}
+                        size="lg"
+                        status={
+                          field.state.meta.errors[0]?.message
+                            ? {
+                                type: "error",
+                                message: field.state.meta.errors[0].message,
+                              }
+                            : undefined
                         }
-                      : undefined
-                  }
-                />
-                {loginFailed && (
-                  <VStack hAlign="end">
-                    <Link
-                      href="#"
-                      size="sm"
-                      color="secondary"
-                      type="supporting"
-                    >
-                      Forgot password?
-                    </Link>
+                      />
+                    )}
+                  />
+                  <VStack gap={1}>
+                    <form.Field
+                      name="password"
+                      children={(field) => (
+                        <TextInput
+                          label="Password"
+                          isLabelHidden
+                          placeholder="Enter your password"
+                          type="password"
+                          value={state.values.password}
+                          isDisabled={loginMutation.isPending}
+                          onChange={(value: string) => {
+                            field.handleChange(value);
+                          }}
+                          onBlur={field.handleBlur}
+                          size="lg"
+                          status={
+                            field.state.meta.errors[0]?.message
+                              ? {
+                                  type: "error",
+                                  message: field.state.meta.errors[0].message,
+                                }
+                              : loginMutation.isError
+                                ? {
+                                    type: "error",
+                                    message: loginMutation.error.message,
+                                  }
+                                : undefined
+                          }
+                        />
+                      )}
+                    />
+                    {loginMutation.isError && (
+                      <VStack hAlign="end">
+                        <Link
+                          href="#"
+                          size="sm"
+                          color="secondary"
+                          type="supporting"
+                        >
+                          Forgot password?
+                        </Link>
+                      </VStack>
+                    )}
                   </VStack>
-                )}
-              </VStack>
-            </VStack>
+                </VStack>
 
-            {/* Login button */}
-            <Button
-              label="Login"
-              variant="primary"
-              size="lg"
-              isLoading={isLoading}
-              onClick={handleLogin}
-            />
+                {/* Login button */}
+                <Button
+                  label="Login"
+                  variant="primary"
+                  size="lg"
+                  type="submit"
+                  isLoading={loginMutation.isPending}
+                />
+              </VStack>
+            </form>
 
             {/* Divider */}
             <Divider label="Or continue with" />
